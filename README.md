@@ -18,7 +18,7 @@ bun install
 
 run:
 ```bash
-bun run server.ts
+bun server.ts
 ```
 
 
