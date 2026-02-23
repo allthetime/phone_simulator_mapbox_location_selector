@@ -1,15 +1,18 @@
-# location_setter
+# mapbox iOS simulator location setter
 
-To install dependencies:
+Currently requires FB IDB - needs refactor for xcrun fallback
+
+## Install & Run
+
+- create `.env` with `MAP_KEY=YOUR_MAPBOX_TOKEN` 
 
 ```bash
 bun install
 ```
 
-To run:
-
 ```bash
-bun run index.ts
+bun run server.ts
 ```
 
-This project was created using `bun init` in bun v1.3.9. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+
+
