@@ -1,15 +1,22 @@
 # mapbox iOS simulator location setter
 
-Currently requires FB IDB - needs refactor for xcrun fallback
+## Requirements:
 
-## Install & Run
+[bun](https://bun.com/docs/installation)
 
-- create `.env` with `MAP_KEY=YOUR_MAPBOX_TOKEN` 
+## Install & Run:
 
+create `.env`:
+```bash  
+MAP_KEY=YOUR_MAPBOX_TOKEN
+```
+
+install server/web dependencies:
 ```bash
 bun install
 ```
 
+run:
 ```bash
 bun run server.ts
 ```
