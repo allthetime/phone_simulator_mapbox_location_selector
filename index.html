@@ -1,99 +1,122 @@
 <html>
-<head>
-<link href="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css" rel="stylesheet">
-<script src="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js"></script>
-<style>
-body { margin: 0; font-family: sans-serif; }
-#controls { position: absolute; top: 10px; left: 10px; z-index: 1; background: white; padding: 10px; border-radius: 6px; }
-#map { width: 100vw; height: 100vh; }
-.device-marker {
-  background: #4a90e2;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-family: sans-serif;
-  white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-</style>
-</head>
-<body>
-<div id="controls">
-<select id="devices"><option>Loading...</option></select>
-<div id="status" style="font-size:12px;margin-top:6px;color:#666"></div>
-</div>
-<div id="map"></div>
-<script>
-mapboxgl.accessToken = null;
+  <head>
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js"></script>
+    <style>
+      body {
+        margin: 0;
+        font-family: sans-serif;
+      }
+      #controls {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 1;
+        background: white;
+        padding: 10px;
+        border-radius: 6px;
+      }
+      #map {
+        width: 100vw;
+        height: 100vh;
+      }
+      .device-marker {
+        background: #4a90e2;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-family: sans-serif;
+        white-space: nowrap;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="controls">
+      <select id="devices">
+        <option>Loading...</option>
+      </select>
+      <div
+        id="status"
+        style="font-size: 12px; margin-top: 6px; color: #666"
+      ></div>
+    </div>
+    <div id="map"></div>
+    <script>
+      const CENTER_COORDS = [-123.05853, 49.24484];
 
-// Fetch the Mapbox access token from the server
-fetch('/mapkey')
-  .then(r => r.json())
-  .then(data => {
-    mapboxgl.accessToken = data.key;
-    initializeMap();
-  })
-  .catch(err => {
-    console.error('Error fetching Mapbox key:', err);
-    document.getElementById('status').textContent = 'Error loading map';
-  });
+      // Fetch the Mapbox access token from the server
+      fetch("/mapkey")
+        .then((r) => r.json())
+        .then((data) => {
+          mapboxgl.accessToken = data.key;
+          initializeMap();
+        })
+        .catch((err) => {
+          console.error("Error fetching Mapbox key:", err);
+          document.getElementById("status").textContent = "Error loading map";
+        });
 
-const VancouverCoords = [-123.05853, 49.24484];
+      let map;
 
-let map;
+      function initializeMap() {
+        map = new mapboxgl.Map({
+          container: "map",
+          style: "mapbox://styles/mapbox/streets-v12",
+          center: CENTER_COORDS,
+          zoom: 15,
+        });
 
-function initializeMap() {
-  map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v12',
-    center: VancouverCoords,
-    zoom: 15
-  });
+        map.on("click", async (e) => {
+          const udid = select.value;
+          const name = select.options[select.selectedIndex].dataset.name;
+          const { lat, lng } = e.lngLat;
 
-    map.on('click', async (e) => {
-    const udid = select.value;
-    const name = select.options[select.selectedIndex].dataset.name;
-    const { lat, lng } = e.lngLat;
+          status.textContent = `Set ${lat.toFixed(5)}, ${lng.toFixed(5)}...`;
 
-    status.textContent = `Set ${lat.toFixed(5)}, ${lng.toFixed(5)}...`;
+          await fetch("/location", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ udid, lat, lng }),
+          });
 
-    await fetch('/location', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ udid, lat, lng })
-    });
+          // Create or move marker
+          if (markers[udid]) {
+            markers[udid].setLngLat([lng, lat]);
+          } else {
+            const el = document.createElement("div");
+            el.className = "device-marker";
+            el.textContent = name;
+            markers[udid] = new mapboxgl.Marker({
+              element: el,
+              anchor: "bottom",
+            })
+              .setLngLat([lng, lat])
+              .addTo(map);
+          }
 
-    // Create or move marker
-    if (markers[udid]) {
-        markers[udid].setLngLat([lng, lat]);
-    } else {
-        const el = document.createElement('div');
-        el.className = 'device-marker';
-        el.textContent = name;
-        markers[udid] = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
-        .setLngLat([lng, lat])
-        .addTo(map);
-    }
+          status.textContent = `Set ✓`;
+        });
+      }
 
-    status.textContent = `Set ✓`;
-    });
+      const select = document.getElementById("devices");
+      const status = document.getElementById("status");
+      const markers = {}; // keyed by udid
 
-}
-
-const select = document.getElementById('devices');
-const status = document.getElementById('status');
-const markers = {}; // keyed by udid
-
-fetch('/devices')
-  .then(r => r.json())
-  .then(devices => {
-    select.innerHTML = devices.map(d =>
-      `<option value="${d.udid}" data-name="${d.name}">${d.name}</option>`
-    ).join('');
-  });
-
-
-</script>
-</body>
+      fetch("/devices")
+        .then((r) => r.json())
+        .then((devices) => {
+          select.innerHTML = devices
+            .map(
+              (d) =>
+                `<option value="${d.udid}" data-name="${d.name}">${d.name}</option>`,
+            )
+            .join("");
+        });
+    </script>
+  </body>
 </html>
