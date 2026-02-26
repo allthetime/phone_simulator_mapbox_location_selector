@@ -1,6 +1,6 @@
 # mapbox iOS/Android simulator location setter
 
-A simple web map to set locations on multiple iOS simulators by selecting the device and clicking on the location. 
+A simple web map to set locations on multiple simulators by selecting the device and clicking on the location. 
 
 iOS: Defaults to IDB, fallsback to xcrun if no IDB installed.
 Android: ADB
