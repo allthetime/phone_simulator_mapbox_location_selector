@@ -62,8 +62,7 @@ function setLocation(udid: string, lat: number, lng: number) {
     // Android emulator expects longitude first, then latitude
     Bun.spawnSync(["adb", "-s", udid, "emu", "geo", "fix", `${lng}`, `${lat}`]);
   } else if (hasIdb) {
-    console.log(`Setting location for ${udid} to ${lat}, ${lng} using idb`);
-    Bun.spawnSync(["idb", "set-location", "--udid", udid, `${lat}", "${lng}`]);
+    Bun.spawnSync(["idb", "set-location", "--udid", udid, `${lat}`, `${lng}`]);
   } else {
     Bun.spawnSync(["xcrun", "simctl", "location", udid, "set", `${lat},${lng}`]);
   }
